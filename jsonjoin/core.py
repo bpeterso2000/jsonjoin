@@ -8,7 +8,7 @@
 +---+--+---+  +---+--+---+  +---+--+---+  +---+--+---+   +---+--+---+
 
 """
-from jsoncut.core import get_rootkey, inspect_json, list_keys, select_key
+from jsoncut.core import get_rootkey, select_key
 from jsoncut.tokenizer import parse_keystr
 from jsoncut.sequencer import Items
 
@@ -39,8 +39,8 @@ def join_data(d, keys, type_='inner'):
     return d[0].value
 
 
-def join_(data, keys, rootkeys=None, jointype='inner', inspect=False,
-          listkeys=False, fullscan=False, quotechar='"'):
+def join_(left, right, key, rgtkey=None, root=None, rgtroot=None,
+          jointype='inner', fullscan=False, quotechar='"'):
     """The hub/core of JSON join.
 
     Args:
@@ -54,23 +54,14 @@ def join_(data, keys, rootkeys=None, jointype='inner', inspect=False,
         fullscan (bool): don't skip previously visited JSON Keys.
         quotechar (str): the quote charcter used around JSON Keys.
     """
-    data = list(data)
-    keys = [keys, keys] if isinstance(keys, str) else list(keys)
-    if rootkeys:
-        if isinstance(rootkeys, str):
-            keys = [rootkeys, rootkeys]
-        else:
-            rootkeys = list(rootkeys)
-    full = fullscan
-    for i in range(2):
-        if rootkeys and rootkeys[i]:
-            keylist = parse_keystr(rootkeys[i], data[i], quotechar, None, full)
+    quote = quotechar
+    data = [left, right]
+    keys = [key, key] if not rgtkey else [key, rgtkey]
+    roots = ([root, root] if not rgtroot else [root, rgtroot])
+    for i, d in enumerate(data):
+        if roots[i]:
+            keylist = parse_keystr(roots[i], data[i], quote, None, fullscan)
             data[i] = get_rootkey(data[i], *keylist[0])
-        data[i] = Items(data[i])
-        keys[i] = parse_keystr(keys[i], data[i].items, quotechar, None, full)
-
-    if inspect:
-        return inspect_json(data)
-    elif listkeys:
-        return list_keys(data, fullscan)
+        data[i] = Items(d)
+        keys[i] = parse_keystr(keys[i], data[i].items, quote, None, fullscan)
     return join_data(data, keys, jointype)

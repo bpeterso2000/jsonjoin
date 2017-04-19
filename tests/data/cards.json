@@ -1,0 +1,5 @@
+[
+    {"ticket": 10, "priority": "High"},
+    {"ticket": 2, "priority": null},
+    {"ticket": 3, "priority": "Low"}
+]

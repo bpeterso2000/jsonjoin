@@ -61,29 +61,30 @@ DATA = (TICKETS, CARDS)
 
 
 def test_inner_join():
-    assert join_(DATA, keys='ticket') == INNER_JOIN
-    assert join_(DATA, keys=('ticket', 'ticket')) == INNER_JOIN
-    assert join_(DATA, keys='ticket', jointype='inner') == INNER_JOIN
+    assert join_(TICKETS, CARDS, key='ticket') == INNER_JOIN
+    assert join_(TICKETS, CARDS, key='ticket', rgtkey='ticket') == INNER_JOIN
+    assert join_(TICKETS, CARDS, key='ticket', jointype='inner') == INNER_JOIN
 
 
 def test_inner_join_different_key():
-    assert join_(DATA, keys=('ticket', 'ticket')) == INNER_JOIN
+    assert join_(TICKETS, CARDS, key='ticket', rgtkey='ticket') == INNER_JOIN
 
-    data = (CARDS_DIFFERENT_KEY, TICKETS)
-    assert join_(data, keys=('card', 'ticket')) == INNER_JOIN_DIFFERENT_KEY
+    result = join_(CARDS_DIFFERENT_KEY, TICKETS, key='card', rgtkey='ticket')
+    assert result == INNER_JOIN_DIFFERENT_KEY
 
 
 def test_left_join():
-    assert join_(DATA, keys='ticket', jointype='left') == LEFT_JOIN
+    assert join_(TICKETS, CARDS, key='ticket', jointype='left') == LEFT_JOIN
 
 
 def test_right_join():
-    assert join_(DATA, keys='ticket', jointype='right') == RIGHT_JOIN
+    assert join_(TICKETS, CARDS, key='ticket', jointype='right') == RIGHT_JOIN
 
 
 def test_outer_join():
-    assert join_(DATA, keys='ticket', jointype='outer') == OUTER_JOIN
+    assert join_(TICKETS, CARDS, key='ticket', jointype='outer') == OUTER_JOIN
 
 
 def test_symmetric_join():
-    assert join_(DATA, keys='ticket', jointype='symmetric') == SYMMETRIC_JOIN
+    result = join_(TICKETS, CARDS, key='ticket', jointype='symmetric')
+    assert result == SYMMETRIC_JOIN

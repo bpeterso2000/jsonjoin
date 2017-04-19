@@ -1,45 +1,38 @@
 """Command-Line Interface."""
-
 import sys
 
 import click
 from click import argument, option, version_option
-
 from jsoncut.cli import load_json, output
 
-
 from . import core
-from . import exceptions as exc
+
+JOIN_TYPES = list(core.JOIN_FUNCTS.keys())
 
 
-def join_(d1, d2, kwds):
+def join_(d1, d2, key, **kwds):
     """Join JSON documents."""
     kwds_copy = kwds.copy()
-    for key in ('indent', 'jsonfile', 'nocolor'):
-        del kwds_copy[key]
-    try:
-        return core.join_(d1, d2, **kwds_copy)
-    except exc.JsonJoinError as e:
-        click.echo(e.format_error(), err=True)
-        sys.exit(1)
+    for drop_key in ('indent', 'nocolor'):
+        del kwds_copy[drop_key]
+    # try:
+    return core.join_(d1, d2, key, **kwds_copy)
+    # except exc.JsonJoinError as e:
+    #     click.echo(e.format_error(), err=True)
+    #    sys.exit(1)
 
 
 @click.command()
-@argument('jsonfile1', type=click.Path(readable=True), required=False)
-@argument('jsonfile2', type=click.Path(readable=True), required=False)
-@option('-r', '--root', 'rootkey', help='Set the root of the JSON document')
-@option('-k', '--keys', type=(str, str),
-        help='replace key in 1st document with key in 2nd document')
-@option('-v', '--values', type=(str, str),
-        help='replace value in 1st document with value in 2nd document')
-@option('-K', '--keyval', type=(str, str),
-        help='replace key in 1st document with value in 2nd document')
-@option('-V', '--valkey', type=(str, str),
-        help='replace value in 1st document with key in 2nd document')
-@option('-l', '--list', 'listkeys', is_flag=True,
-        help='numbered JSON keys list')
-@option('-i', '--inspect', is_flag=True,
-        help='inspect JSON document; all keys, indexes & types')
+@argument('json_left', type=click.Path(readable=True), required=False)
+@argument('json_right', type=click.Path(readable=True), required=False)
+@option('-k', '--key', required=True,
+        help='Select the primary key for the left document (JSON Key)')
+@option('-K', '--rgtkey',
+        help='Select the primary key for the right document (JSON Key)')
+@option('-r', '--root', help='Set the root of the left document (JSON Key')
+@option('-R', '--rgtroot', help='Set the root of the right document (JSON Key')
+@option('-j', '--join', 'jointype', type=click.Choice(JOIN_TYPES),
+        default='inner', help='Set the join type')
 @option('-f', '--fullscan', is_flag=True, help='deep inpections')
 @option('-q', '--quotechar', default='"', help='set quoting char for keys')
 @option('-I', '--indent', type=int, help='indent JSON when redirecting')
@@ -50,12 +43,11 @@ def main(ctx, **kwds):
     """Quickly select or filter out properties in a JSON document."""
     if kwds['nocolor']:
         ctx.color = False
-    d1 = load_json(ctx, kwds['jsonfile1'])
-    d2 = load_json(ctx, kwds['jsonfile2'])
-    results = join_(d1, d2, kwds)
-    is_json = not (kwds['listkeys'] or kwds['inspect'])
-    output(ctx, results, kwds['indent'], is_json)
-
+    d1 = load_json(ctx, kwds.pop('json_left'))
+    d2 = load_json(ctx, kwds.pop('json_right'))
+    key = kwds.pop('key')
+    results = join_(d1, d2, key, **kwds)
+    output(ctx, results, kwds['indent'], False)
 
 if __name__ == '__main__':
     main()

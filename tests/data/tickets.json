@@ -1,0 +1,6 @@
+[
+    {"ticket": 1, "status": "Open"},
+    {"ticket": 2, "status": "Closed"},
+    {"ticket": 3, "status": "Pending"},
+    {"ticket": 4, "status": "Open"}
+]
